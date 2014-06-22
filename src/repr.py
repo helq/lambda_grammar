@@ -23,14 +23,22 @@ def λ_term_to_str(λ_term):
     if λ_term['type'] == 'λ_abstraction':
         return ( "λ"
                + λ_term['param']
-               + ".("
-               + λ_term_to_str(λ_term['λ_term'])
-               + ")")
+               + "."
+               + λ_term_to_str(λ_term['λ_term']))
 
     if λ_term['type'] == 'λ_application':
-        return ("(" + λ_term_to_str(λ_term['function'])+") "
-                + reduce( lambda x,y: x+y,
-                          map(lambda x: "("+λ_term_to_str(x)+")", λ_term['input'])
-                        )
-               )
+        def sub_λ_term(term):
+            if   term['type'] == 'value': return str(term['value']) + " "
+            elif term['type'] == 'id': return term['id'] + " "
+            else:                      return "(" + λ_term_to_str(term) + ") "
 
+        def sub_λ_term_f(term):
+            if term['type'] == 'id': return term['id'] + " "
+            else:                    return "(" + λ_term_to_str(term) + ") "
+
+        # del_if_last_is_space
+        sp = lambda x: x[:-1] if x[-1] == ' ' else x
+
+        func = sub_λ_term_f( λ_term['function'] )
+
+        return func + sp( ''.join( map(sub_λ_term, λ_term['input']) ) )

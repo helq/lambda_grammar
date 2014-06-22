@@ -40,7 +40,7 @@ t_OR          = r'\|'
 t_LAMBDA      = r'\\|λ'
 
 def t_ID(t):
-    r"[a-zA-Z][a-zA-Z_0-9]*'*"
+    r"[a-zA-Z_][a-zA-Z_0-9_]*'*"
     t.type = reserved.get(t.value,'ID')    # Check for reserved words
     if t.value == "true":  t.value = True
     if t.value == "false": t.value = False

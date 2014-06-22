@@ -16,6 +16,9 @@ tests = [
         "test = 5 .",
         "test = 5+c : nil .",
         "test = (\\x.x) .",
+        'test = \\x.((\\x.x) x) .',
+        'test = (\\x.(\\x.x)) x .',
+        'test = (λx.λy.y+x) .',
         'test = (λx.λy.y+x) .',
         'test = (a b) c .',
         'test = a b c .',
@@ -24,12 +27,12 @@ tests = [
         'test = λx.λy.y+x l .',
         'test = (λx.λy.y+x) 3 .',
         'test = (λx. λy. x y x) (λy. λx. y (x y x)) .',
-        'test = (λx.(λy.((x) (y)(x)))) (λy.(λx.((y) ((x) (y)(x))))) .',
         'test = λf.(λx.x x) (λx.f (x x)) .',
         "test = \"hi\": ' another string' .",
         "test = (f) a b c .",
         "test = (\\x.x) a b c .",
         "test = (f x) a b c .",
+        "test = (f + x) a b c .",
 ]
 
 for s in tests:

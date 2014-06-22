@@ -32,6 +32,6 @@ if __name__ == "__main__":
         print("must be an 'main' simbol/declaration in the source code")
         exit(1)
 
-    print( λ_term_to_str(declarations['main']) )
+    print( λ_term_to_str(declarations['main']), end="\n\n" )
     result = inter.reduce_λ_term(declarations['main'], declarations, print)
-    print( "= " + λ_term_to_str(result) )
+    print( "\n= " + λ_term_to_str(result) )

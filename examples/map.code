@@ -5,4 +5,4 @@ map = \f.\xs.if (xs=nil) nil (f (fst xs) : map f (snd xs)) .
 
 double = \x.x*2 .
 
-main = map double (list 0 5) . // Y-Combinator application
+main = map double (list 0 5) .

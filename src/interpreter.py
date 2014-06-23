@@ -7,7 +7,7 @@ from src.repr import λ_term_to_str
 def printNothing(x): pass
 
 
-primitives = ['if', 'fst', 'snd']
+primitives = ['if', 'fst', 'snd', 'show']
 
 def reduce_λ_term(λ_term, declarations, myPrint=print):
     what_happend=None
@@ -109,7 +109,7 @@ def reduce_λ_term(λ_term, declarations, myPrint=print):
             if λ_term['function']['type'] == "id":
                 id = λ_term['function']['id']
                 if id in primitives:
-                    newMyPrint = lambda x: myPrint(" if|"+x)
+                    newMyPrint = lambda x: myPrint(" "+id+"|"+x)
                     λ_term = evaluate_primitive( id, λ_term['input']
                                                , declarations, newMyPrint)
                 else:
@@ -281,10 +281,10 @@ def evaluate_primitive(pri, inputs, declarations, myPrint):
 
     if pri in ['fst', 'snd']:
         cons = reduce_λ_term(inputs[0], declarations, myPrint)
+        if cons['type'] == 'value' and cons['value'] == None:
+            raise Exception("`"+pri+"` applied to a `nil`, imposible")
         if cons['type'] != 'value' or type(cons['value']) is not tuple:
             raise Exception("`"+pri+"` primitive require expresion to be a cons")
-        if cons['value'] == None:
-            raise Exception("`"+pri+"` applied to a `nil`, imposible")
 
         if len(inputs) > 1:
             raise Exception("`"+pri+"` can only be applied to one expresion")
@@ -293,3 +293,9 @@ def evaluate_primitive(pri, inputs, declarations, myPrint):
                 return cons['value'][0]
             elif pri == "snd":
                 return cons['value'][1]
+
+    if pri == 'show':
+        if len(inputs) > 1:
+            raise Exception("`"+pri+"` can only be applied to one expresion")
+        toShow = reduce_λ_term(inputs[0], declarations, myPrint)
+        return {'type': 'value', 'value': λ_term_to_str(toShow)}

@@ -1,0 +1,7 @@
+// implementation of map in "pure" lambda
+
+list = \x.\y. if (x>y) nil (x : list (x+1) y) .
+map = \f.\xs. if (xs=nil) nil (f (fst xs) : map f (snd xs)) .
+concat = \xss. if (xss=nil) "" (fst xss ^ concat (snd xss)) .
+
+main = concat (map show (list 0 5)) .

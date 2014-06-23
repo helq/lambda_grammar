@@ -10,40 +10,50 @@ def printNothing(x): pass
 primitives = ['if']
 
 def reduce_λ_term(λ_term, declarations, myPrint=print):
-    what_happen=None
+    what_happend=None
 
+    # reduce lambda term until return something, or an error of types kill the
+    # reducing
     while(True):
         myPrint( "= " + λ_term_to_str(λ_term)
-               + (" " + what_happen if what_happen else "" )
+               + (" " + what_happend if what_happend else "" )
                )
-        what_happen=None
+        what_happend=None
 
+        # no more reduction posible
         if λ_term['type'] in ['value', 'λ_abstraction']:
             return λ_term
 
+        # expresion with only a name variable, then replace variable with his
+        # content (defined in declarations)
         if λ_term['type'] == 'id':
             λ_term = declarations[ λ_term['id'] ]
             continue
 
+        # aplying an operation to two lambda terms
         if λ_term['type'] == 'op':
             op = λ_term['op']
 
             newMyPrint = lambda x: myPrint("  |"+x)
 
+            # get value from first (left) lambda term
             if λ_term['val1']['type'] == 'value':
                 value1 = λ_term['val1']
             else:
                 myPrint( "  l-> " + λ_term_to_str(λ_term['val1']) )
                 value1 = reduce_λ_term(λ_term['val1'], declarations, newMyPrint )
 
+            # get value from second (right) lambda term
             if λ_term['val2']['type'] == 'value':
                 value2 = λ_term['val2']
             else:
                 myPrint( "  r-> " + λ_term_to_str(λ_term['val2']) )
                 value2 = reduce_λ_term(λ_term['val2'], declarations, newMyPrint )
 
-            λ_term = {'type': 'value'}
+            λ_term = {'type': 'value', 'value': None} # value determined below
 
+            # analyzing types of the values and determining the right value for
+            # the new lambda term
             val1 = value1['value']
             val2 = value2['value']
             if op == ':': λ_term['value'] = (val1, val2)
@@ -77,10 +87,20 @@ def reduce_λ_term(λ_term, declarations, myPrint=print):
 
             continue
 
+        # the lambda term is an application. Now inside the function
+        # application (the `f` inside `f s`) is possible find:
+        # - a value, or operation
+        # - a variable value
+        # - another lambda application
+        # - or a lambda abstraction
         if λ_term['type'] == 'λ_application':
+            # this must be an error, but its better return
             if λ_term['function']['type'] in ["value", "op"]:
                 return λ_term
 
+            # if it's a variable value, than replace the variable by its
+            # contents, using declaration or calling a primitive, if it's a
+            # primitive function
             if λ_term['function']['type'] == "id":
                 id = λ_term['function']['id']
                 if id in primitives:
@@ -91,25 +111,32 @@ def reduce_λ_term(λ_term, declarations, myPrint=print):
                     λ_term['function'] = declarations[ id ]
                 continue
 
+            # another lambda application, than apply rule:
+            # (f a ...) b ... ≡ f a ... b ...
+            # (f a) b ≡ f a b
             if λ_term['function']['type'] == "λ_application":
                 λ_term = { 'type': 'λ_application'
                          , 'function': λ_term['function']['function']
                          , 'input': λ_term['function']['input']+λ_term['input']}
-                what_happen = "// left assoc λ aplications: (f x) y = f x y"
+                what_happend = "// left assoc λ aplications: (f x) y = f x y"
                 continue
 
+            # if it's a lambda abstraction, than apply a beta reduction
             if λ_term['function']['type'] == "λ_abstraction":
                 param = λ_term['function']['param']
                 term = λ_term['function']['λ_term']
                 input_ = λ_term['input'][0]
 
+                # β reduction: (λx.M) N ≡ M[x := N]
                 new_λ_term = substitution(param, input_, myPrint) (term)
-                what_happen = "// β-reduc"
+                what_happend = "// β-reduc"
 
+                # (λx.M) N O ... ≡ (M[x := N]) O ...
                 if len(λ_term['input']) > 1:
                     λ_term = { 'type': 'λ_application'
                              , 'function': new_λ_term
                              , 'input': λ_term['input'][1:] }
+                # (λx.M) N ≡ M[x := N]
                 else:
                     λ_term = new_λ_term
 

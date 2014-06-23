@@ -16,7 +16,6 @@ Examples
 --------
 
     $ python3 testing_interpreter.py examples/an_if.lambda
-    
     if ((5=0)) ((a 2 3) a) 6
     
     = if ((5=0)) ((a 2 3) a) 6
@@ -27,7 +26,6 @@ Examples
     = 6
 
     $ python3 testing_interpreter.py examples/factorial.code
-    
     Y fac 5
     
     = Y fac 5

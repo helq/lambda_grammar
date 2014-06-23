@@ -116,30 +116,36 @@ def reduce_λ_term(λ_term, declarations, myPrint=print):
                 continue
 
 
+# subtitution, lambda calculus: M[x := N]
+# https://en.wikipedia.org/wiki/Lambda_calculus#Substitution
 def substitution(x, N, myPrint=printNothing):
     def subs_x_for_N_in(M):
-        if M["type"] == 'value': return M
-        if M["type"] == 'op':
+        if M["type"] == 'value': return M # `value` [x := N] ≡ `value`
+        if M["type"] == 'op': # (M1 `op` M2) [x := N] ≡ (M1[x := N] `op` M2[x := N])
             return { 'type': 'op'
                    , 'op': M['op']
                    , 'val1': subs_x_for_N_in(M['val1'])
                    , 'val2': subs_x_for_N_in(M['val2']) }
 
         if M["type"] == 'id':
-            if M['id'] == x: return N
-            else:            return M
-        if M["type"] == 'λ_application':
+            if M['id'] == x: return N # x[x := N] ≡ N
+            else:            return M # y[x := N] ≡ y
+        if M["type"] == 'λ_application': # (M1 M2)[x := N] ≡ (M1[x := N]) (M2[x := N])
             return { 'type': 'λ_application'
                    , 'function': subs_x_for_N_in(M['function'])
                    , 'input': list(map(subs_x_for_N_in, M['input'])) }
         if M["type"] == 'λ_abstraction':
             y = M['param']
-            if y == x: return M
+            if y == x: return M # (λx.M)[x := N] ≡ λx.M
             else:
-                if y in FV(N):
+                if y in FV(N): # (λy.M)[x := N] ≡ λy.(M[x := N]), if x ≠ y
+                               #  //IMPORTANT//                 , but y ∈ FV(N)
+
+                    # in this case y ∈ FV(N), then is necesary change the name
+                    # variable y for other that is not in the set of V(N) ∪ V(M)
                     V_M_plus_V_N = V(M)
-                    V_M_plus_V_N.update( V(N) )
-                    newY = valNotIn( V_M_plus_V_N )
+                    V_M_plus_V_N.update( V(N) ) # V(N) ∪ V(M)
+                    newY = valNotIn( V_M_plus_V_N ) # newY ∉ V(N) ∪ V(M)
                     newYid = { 'type': 'id', 'id': newY }
 
                     myPrint( "        |= " + λ_term_to_str(M) )
@@ -148,33 +154,42 @@ def substitution(x, N, myPrint=printNothing):
                         , 'λ_term': substitution(y, newYid)(M['λ_term'])
                         }
                     myPrint( " α-reduc|= " + λ_term_to_str(M) )
+                    # now: (λ newY.M)[x := N] ≡ λ newY.(M[x := N]), if x ≠ newY
+                    #                                             , provided newY ∉ FV(N)
 
+                # (λy.M)[x := N] ≡ λy.(M[x := N]), if x ≠ y
+                #                                , provided y ∉ FV(N)
                 return { 'type': 'λ_abstraction'
                        , 'param': M['param']
                        , 'λ_term': subs_x_for_N_in(M['λ_term'])
                        }
     return subs_x_for_N_in
 
+# Free-variables in the lambda term N
+# https://en.wikipedia.org/wiki/Lambda_calculus#Free_and_bound_variables
 def FV(N):
-    if N['type'] == 'value': return {}
-    if N['type'] == 'op':
+    if N['type'] == 'value': return {} # FV(`value`) = {}
+    if N['type'] == 'op': # FV(M `op` N) = FV(M) ∪ FV(N)
         FV_val1 = FV(N['val1'])
         FV_val2 = FV(N['val2'])
         FV_val1.update(FV_val2)
         return FV_val1
 
-    if N['type'] == 'id':    return {N['id']: None}
-    if N['type'] == 'λ_application':
+    if N['type'] == 'id':    return {N['id']: None} # FV(x) = {x}, where x is a variable
+    if N['type'] == 'λ_application': # FV(M N) = FV(M) ∪ FV(N)
         FV_function = FV(N['function'])
         FV_input = list(map(FV, N['input']))
         for i in FV_input:
             FV_function.update(i)
         return FV_function
-    if N["type"] == 'λ_abstraction':
+    if N["type"] == 'λ_abstraction': # FV(λx.M) = FV(M) \ {x}
         FV_λ_term = FV(N['λ_term'])
         del( FV_λ_term[ N['param'] ] )
         return FV_λ_term
 
+# Variables (free and bound variables) in the lambda term N
+# same implementation as FV(N), except for rule: FV(λx.M) = FV(M) \ {x}
+# that is now: V(λx.M) = V(M) ∪ {x}
 def V(N):
     if N['type'] == 'value': return {}
     if N['type'] == 'op':
@@ -195,20 +210,22 @@ def V(N):
         FV_λ_term[ N['param'] ] = None
         return FV_λ_term
 
+# this create a iterator with many possible name variables
+# generatorLetters ≈ ['z', 'y', 'x', 'w', 'v', ...]
 def generatorLetters():
     from itertools import count
     for j in count():
-        x = []
+        x = [0]
         i = j
         while i != 0:
             x.insert(0, i%52)
             i //= 52
-
         if x == []: x = [0]
         st = map(lambda n: chr(96+26-n) if n<26 else chr(64+52-n), x)
-
         yield "".join(st)
 
+# with a set `l` of name variables (strings), find a name variable that is not
+# in the set
 def valNotIn(l):
     for val in generatorLetters():
         if val not in l:

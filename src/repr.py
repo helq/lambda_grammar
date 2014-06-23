@@ -2,12 +2,12 @@ from functools import reduce
 def λ_term_to_str(λ_term):
     if λ_term['type'] == 'value':
         if type(λ_term['value']) is tuple:
-            v1 = λ_term_to_str( {'type': 'value', 'value': λ_term['value'][0]} )
-            v2 = λ_term_to_str( {'type': 'value', 'value': λ_term['value'][1]} )
+            v1 = λ_term_to_str( λ_term['value'][0] )
+            v2 = λ_term_to_str( λ_term['value'][1] )
             return "("+ str(v1) +":"+ str(v2) +")"
         if type(λ_term['value']) is bool:
             return "true" if λ_term['value'] else "false"
-        if λ_term['value'] == "nil":
+        if λ_term['value'] == None:
             return "nil"
         return repr(λ_term['value'])
 

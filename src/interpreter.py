@@ -7,7 +7,7 @@ from src.repr import λ_term_to_str
 def printNothing(x): pass
 
 
-primitives = ['if']
+primitives = ['if', 'fst', 'snd']
 
 def reduce_λ_term(λ_term, declarations, myPrint=print):
     what_happend=None
@@ -27,6 +27,8 @@ def reduce_λ_term(λ_term, declarations, myPrint=print):
         # expresion with only a name variable, then replace variable with his
         # content (defined in declarations)
         if λ_term['type'] == 'id':
+            if λ_term['id'] not in declarations:
+                return λ_term
             λ_term = declarations[ λ_term['id'] ]
             continue
 
@@ -56,7 +58,8 @@ def reduce_λ_term(λ_term, declarations, myPrint=print):
             # the new lambda term
             val1 = value1['value']
             val2 = value2['value']
-            if op == ':': λ_term['value'] = (val1, val2)
+
+            if op == ':': λ_term['value'] = (value1, value2)
 
             if op == '^':
                 if type(val1) is not str or type(val2) is not str:
@@ -66,24 +69,26 @@ def reduce_λ_term(λ_term, declarations, myPrint=print):
             if op in ['+', '-', '*', '/', '<', '>']:
                 if type(val1) is not int or type(val2) is not int:
                     raise Exception("operator "+op+" only valid for numbers")
-                if op == '+': λ_term['value'] = val1 + val2
-                if op == '-': λ_term['value'] = val1 - val2
-                if op == '*': λ_term['value'] = val1 * val2
-                if op == '/': λ_term['value'] = val1 // val2
-                if op == '<': λ_term['value'] = val1 < val2
-                if op == '>': λ_term['value'] = val1 > val2
+                if   op == '+': λ_term['value'] = val1 + val2
+                elif op == '-': λ_term['value'] = val1 - val2
+                elif op == '*': λ_term['value'] = val1 * val2
+                elif op == '/': λ_term['value'] = val1 // val2
+                elif op == '<': λ_term['value'] = val1 < val2
+                elif op == '>': λ_term['value'] = val1 > val2
 
             if op in ['=', '≠']:
                 if type(val1) != type(val2):
-                    raise Exception("operator "+op+" need same type for the two expresions")
-                if op == '=': λ_term['value'] = val1 == val2
-                if op == '≠': λ_term['value'] = val1 != val2
+                    if (  not (type(val1) is tuple and val2 == None)
+                      and not (type(val2) is tuple and val1 == None) ):
+                        raise Exception("operator "+op+" need same type for the two expresions")
+                if   op == '=': λ_term['value'] = val1 == val2
+                elif op == '≠': λ_term['value'] = val1 != val2
 
             if op in ['&', '|']:
                 if type(val1) is not bool or type(val2) is not bool:
                     raise Exception("operator "+op+" only valid for booleans")
-                if op == '&': λ_term['value'] = val1 and val2
-                if op == '|': λ_term['value'] = val1 or val2
+                if   op == '&': λ_term['value'] = val1 and val2
+                elif op == '|': λ_term['value'] = val1 or val2
 
             continue
 
@@ -265,7 +270,7 @@ def evaluate_primitive(pri, inputs, declarations, myPrint):
 
         b = reduce_λ_term(inputs[0], declarations, myPrint)
         if b['type'] != 'value' or type(b['value']) is not bool:
-            raise Exception("`if` primitive require first expresion to be boolean")
+            raise Exception("`if` primitive require first expresion to be a boolean")
 
         if len(inputs) > 3:
             return { 'type': 'λ_application'
@@ -273,3 +278,18 @@ def evaluate_primitive(pri, inputs, declarations, myPrint):
                    , 'input': inputs[3:] }
         else: # len(inputs) == 3
             return inputs[1] if b['value'] else inputs[2]
+
+    if pri in ['fst', 'snd']:
+        cons = reduce_λ_term(inputs[0], declarations, myPrint)
+        if cons['type'] != 'value' or type(cons['value']) is not tuple:
+            raise Exception("`"+pri+"` primitive require expresion to be a cons")
+        if cons['value'] == None:
+            raise Exception("`"+pri+"` applied to a `nil`, imposible")
+
+        if len(inputs) > 1:
+            raise Exception("`"+pri+"` can only be applied to one expresion")
+        else: # len(inputs) == 1
+            if   pri == "fst":
+                return cons['value'][0]
+            elif pri == "snd":
+                return cons['value'][1]

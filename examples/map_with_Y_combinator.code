@@ -1,0 +1,8 @@
+// implementation of map in "pure" lambda
+
+list = \f.\x.\y. if (x>y) nil (x : f (x+1) y) .
+map = \m.\f.\xs.if (xs=nil) nil (f (fst xs) : m f (snd xs)) .
+
+double = \x.x*2 .
+
+main = Y map double (Y list 0 5) . // Y-Combinator application

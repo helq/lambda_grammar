@@ -1,0 +1,1 @@
+main = (\x.z) ((\w.w w w) (\w.w w w)) .

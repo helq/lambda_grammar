@@ -42,8 +42,9 @@ t_LAMBDA      = r'\\|λ'
 def t_ID(t):
     r"[a-zA-Z_][a-zA-Z_0-9_]*'*"
     t.type = reserved.get(t.value,'ID')    # Check for reserved words
-    if t.value == "true":  t.value = True
-    if t.value == "false": t.value = False
+    if   t.value == "true":  t.value = True
+    elif t.value == "false": t.value = False
+    elif t.value == "nil": t.value = None
     return t
 
 def t_NUMBER(t):

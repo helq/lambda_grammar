@@ -5,8 +5,8 @@
 
 from src.repr import λ_term_to_str
 def printNothing(x): pass
-call_by_value_substitution = True
 
+call_by_value_substitution = False
 
 primitives = ['if', 'fst', 'snd', 'show']
 
@@ -153,9 +153,10 @@ def reduce_λ_term(λ_term, declarations, myPrint=printNothing):
 # https://en.wikipedia.org/wiki/Lambda_calculus#Substitution
 def substitution(x, N, decls, myPrint=printNothing):
     if call_by_value_substitution:
-        myPrint(" red|  "+ λ_term_to_str(N))
-        N = reduce_λ_term(N, decls)
-        myPrint(" red|= "+ λ_term_to_str(N))
+        newMyPrint = lambda x: myPrint(" red|"+x)
+        #myPrint(" red|  "+ λ_term_to_str(N))
+        N = reduce_λ_term(N, decls, newMyPrint)
+        #myPrint(" red|= "+ λ_term_to_str(N))
 
     def subs_x_for_N_in(M):
         if M["type"] == 'value': return M # `value` [x := N] ≡ `value`

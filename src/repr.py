@@ -1,14 +1,19 @@
 def λ_term_to_str(λ_term):
     if λ_term['type'] == 'value':
         if type(λ_term['value']) is tuple:
-            v1 = λ_term_to_str( λ_term['value'][0] )
-            v2 = λ_term_to_str( λ_term['value'][1] )
-            return "("+ str(v1) +":"+ str(v2) +")"
-        if type(λ_term['value']) is bool:
+            # treat as an operation, the operation `:`
+            λ_term = { 'type': 'op'
+                     , 'op': ':'
+                     , 'val1': λ_term['value'][0]
+                     , 'val2': λ_term['value'][1]
+                     }
+
+        elif type(λ_term['value']) is bool:
             return "true" if λ_term['value'] else "false"
-        if λ_term['value'] == None:
+        elif λ_term['value'] == None:
             return "nil"
-        return repr(λ_term['value'])
+        else:
+            return repr(λ_term['value'])
 
     if λ_term['type'] == 'id': return λ_term['id']
 

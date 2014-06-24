@@ -1,2 +1,0 @@
-fac = \f.\x.if (x=0) 1 (x * f (x-1)) .
-main = Y fac 5 . // Y-Combinator application

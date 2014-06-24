@@ -4,189 +4,109 @@ ILLA
 An implementation of a like-Lambda Calculus
 -------------------------------------------
 
-Need Python3 and [PLY](http://www.dabeaz.com/ply/)
+Need Python3, [PLY](http://www.dabeaz.com/ply/) and [argv](https://github.com/chbrown/argv)
+
+It's possible use *call by name* or *call by value* for the evaluation.
 
 Usage
 -----
 
-    $ python3 testing_interpreter.py <code.lambda>
-
+     testing_interpreter.py [-v|(-p|-n)] -f file_to_execute
+    
+       -v   call by value (by default is the strategy `call by name`)
+       -p   print each reduction (default)
+       -n   not print reductions (override `-p`)
 
 Examples
 --------
 
-    $ python3 testing_interpreter.py examples/an_if.lambda
-    if ((5=0)) ((a 2 3) a) 6
+    $ # see: https://en.wikipedia.org/wiki/Lambda_calculus#Recursion_and_fixed_points
+    $ testing_interpreter.py -f examples/factorial.lambda
+    Y fac 2
     
-    = if ((5=0)) ((a 2 3) a) 6
-     if|= (5=0)
+    = Y fac 2
+    = (λf.(λx.x x) (λx.f (x x))) fac 2
+    = ((λx.x x) (λx.fac (x x))) 2 // β-reduc
+    = (λx.x x) (λx.fac (x x)) 2 // left assoc λ aplications: (f x) y = f x y
+    = ((λx.fac (x x)) (λx.fac (x x))) 2 // β-reduc
+    = (λx.fac (x x)) (λx.fac (x x)) 2 // left assoc λ aplications: (f x) y = f x y
+    = (fac ((λx.fac (x x)) (λx.fac (x x)))) 2 // β-reduc
+    = fac ((λx.fac (x x)) (λx.fac (x x))) 2 // left assoc λ aplications: (f x) y = f x y
+    = (λf.λx.if (x=0) 1 (x*f (x-1))) ((λx.fac (x x)) (λx.fac (x x))) 2
+    = (λx.if (x=0) 1 (x*((λx.fac (x x)) (λx.fac (x x))) (x-1))) 2 // β-reduc
+    = if (2=0) 1 (2*((λx.fac (x x)) (λx.fac (x x))) (2-1)) // β-reduc
+     if|= 2=0
      if|= false
-    = 6
-    
-    = 6
-
-    $ python3 testing_interpreter.py examples/factorial.code
-    Y fac 5
-    
-    = Y fac 5
-    = (λf.(λx.x x) (λx.f (x x))) fac 5
-    = ((λx.x x) (λx.fac (x x))) 5 // β-reduc
-    = (λx.x x) (λx.fac (x x)) 5 // left assoc λ aplications: (f x) y = f x y
-    = ((λx.fac (x x)) (λx.fac (x x))) 5 // β-reduc
-    = (λx.fac (x x)) (λx.fac (x x)) 5 // left assoc λ aplications: (f x) y = f x y
-    = (fac ((λx.fac (x x)) (λx.fac (x x)))) 5 // β-reduc
-    = fac ((λx.fac (x x)) (λx.fac (x x))) 5 // left assoc λ aplications: (f x) y = f x y
-    = (λf.λx.if ((x=0)) 1 ((x*f ((x-1))))) ((λx.fac (x x)) (λx.fac (x x))) 5
-    = (λx.if ((x=0)) 1 ((x*((λx.fac (x x)) (λx.fac (x x))) ((x-1))))) 5 // β-reduc
-    = if ((5=0)) 1 ((5*((λx.fac (x x)) (λx.fac (x x))) ((5-1)))) // β-reduc
-     if|= (5=0)
-     if|= false
-    = (5*((λx.fac (x x)) (λx.fac (x x))) ((5-1)))
-      r-> ((λx.fac (x x)) (λx.fac (x x))) ((5-1))
-      |= ((λx.fac (x x)) (λx.fac (x x))) ((5-1))
-      |= (λx.fac (x x)) (λx.fac (x x)) ((5-1)) // left assoc λ aplications: (f x) y = f x y
-      |= (fac ((λx.fac (x x)) (λx.fac (x x)))) ((5-1)) // β-reduc
-      |= fac ((λx.fac (x x)) (λx.fac (x x))) ((5-1)) // left assoc λ aplications: (f x) y = f x y
-      |= (λf.λx.if ((x=0)) 1 ((x*f ((x-1))))) ((λx.fac (x x)) (λx.fac (x x))) ((5-1))
-      |= (λx.if ((x=0)) 1 ((x*((λx.fac (x x)) (λx.fac (x x))) ((x-1))))) ((5-1)) // β-reduc
-      |= if (((5-1)=0)) 1 (((5-1)*((λx.fac (x x)) (λx.fac (x x))) (((5-1)-1)))) // β-reduc
-      | if|= ((5-1)=0)
-      | if|  l-> (5-1)
-      | if|  |= (5-1)
-      | if|  |= 4
+    = 2*((λx.fac (x x)) (λx.fac (x x))) (2-1)
+      r-> ((λx.fac (x x)) (λx.fac (x x))) (2-1)
+      |= ((λx.fac (x x)) (λx.fac (x x))) (2-1)
+      |= (λx.fac (x x)) (λx.fac (x x)) (2-1) // left assoc λ aplications: (f x) y = f x y
+      |= (fac ((λx.fac (x x)) (λx.fac (x x)))) (2-1) // β-reduc
+      |= fac ((λx.fac (x x)) (λx.fac (x x))) (2-1) // left assoc λ aplications: (f x) y = f x y
+      |= (λf.λx.if (x=0) 1 (x*f (x-1))) ((λx.fac (x x)) (λx.fac (x x))) (2-1)
+      |= (λx.if (x=0) 1 (x*((λx.fac (x x)) (λx.fac (x x))) (x-1))) (2-1) // β-reduc
+      |= if (2-1=0) 1 ((2-1)*((λx.fac (x x)) (λx.fac (x x))) (2-1-1)) // β-reduc
+      | if|= 2-1=0
+      | if|  l-> 2-1
+      | if|  |= 2-1
+      | if|  |= 1
       | if|= false
-      |= ((5-1)*((λx.fac (x x)) (λx.fac (x x))) (((5-1)-1)))
-      |  l-> (5-1)
-      |  |= (5-1)
-      |  |= 4
-      |  r-> ((λx.fac (x x)) (λx.fac (x x))) (((5-1)-1))
-      |  |= ((λx.fac (x x)) (λx.fac (x x))) (((5-1)-1))
-      |  |= (λx.fac (x x)) (λx.fac (x x)) (((5-1)-1)) // left assoc λ aplications: (f x) y = f x y
-      |  |= (fac ((λx.fac (x x)) (λx.fac (x x)))) (((5-1)-1)) // β-reduc
-      |  |= fac ((λx.fac (x x)) (λx.fac (x x))) (((5-1)-1)) // left assoc λ aplications: (f x) y = f x y
-      |  |= (λf.λx.if ((x=0)) 1 ((x*f ((x-1))))) ((λx.fac (x x)) (λx.fac (x x))) (((5-1)-1))
-      |  |= (λx.if ((x=0)) 1 ((x*((λx.fac (x x)) (λx.fac (x x))) ((x-1))))) (((5-1)-1)) // β-reduc
-      |  |= if ((((5-1)-1)=0)) 1 ((((5-1)-1)*((λx.fac (x x)) (λx.fac (x x))) ((((5-1)-1)-1)))) // β-reduc
-      |  | if|= (((5-1)-1)=0)
-      |  | if|  l-> ((5-1)-1)
-      |  | if|  |= ((5-1)-1)
-      |  | if|  |  l-> (5-1)
-      |  | if|  |  |= (5-1)
-      |  | if|  |  |= 4
-      |  | if|  |= 3
-      |  | if|= false
-      |  |= (((5-1)-1)*((λx.fac (x x)) (λx.fac (x x))) ((((5-1)-1)-1)))
-      |  |  l-> ((5-1)-1)
-      |  |  |= ((5-1)-1)
-      |  |  |  l-> (5-1)
-      |  |  |  |= (5-1)
-      |  |  |  |= 4
-      |  |  |= 3
-      |  |  r-> ((λx.fac (x x)) (λx.fac (x x))) ((((5-1)-1)-1))
-      |  |  |= ((λx.fac (x x)) (λx.fac (x x))) ((((5-1)-1)-1))
-      |  |  |= (λx.fac (x x)) (λx.fac (x x)) ((((5-1)-1)-1)) // left assoc λ aplications: (f x) y = f x y
-      |  |  |= (fac ((λx.fac (x x)) (λx.fac (x x)))) ((((5-1)-1)-1)) // β-reduc
-      |  |  |= fac ((λx.fac (x x)) (λx.fac (x x))) ((((5-1)-1)-1)) // left assoc λ aplications: (f x) y = f x y
-      |  |  |= (λf.λx.if ((x=0)) 1 ((x*f ((x-1))))) ((λx.fac (x x)) (λx.fac (x x))) ((((5-1)-1)-1))
-      |  |  |= (λx.if ((x=0)) 1 ((x*((λx.fac (x x)) (λx.fac (x x))) ((x-1))))) ((((5-1)-1)-1)) // β-reduc
-      |  |  |= if (((((5-1)-1)-1)=0)) 1 (((((5-1)-1)-1)*((λx.fac (x x)) (λx.fac (x x))) (((((5-1)-1)-1)-1)))) // β-reduc
-      |  |  | if|= ((((5-1)-1)-1)=0)
-      |  |  | if|  l-> (((5-1)-1)-1)
-      |  |  | if|  |= (((5-1)-1)-1)
-      |  |  | if|  |  l-> ((5-1)-1)
-      |  |  | if|  |  |= ((5-1)-1)
-      |  |  | if|  |  |  l-> (5-1)
-      |  |  | if|  |  |  |= (5-1)
-      |  |  | if|  |  |  |= 4
-      |  |  | if|  |  |= 3
-      |  |  | if|  |= 2
-      |  |  | if|= false
-      |  |  |= ((((5-1)-1)-1)*((λx.fac (x x)) (λx.fac (x x))) (((((5-1)-1)-1)-1)))
-      |  |  |  l-> (((5-1)-1)-1)
-      |  |  |  |= (((5-1)-1)-1)
-      |  |  |  |  l-> ((5-1)-1)
-      |  |  |  |  |= ((5-1)-1)
-      |  |  |  |  |  l-> (5-1)
-      |  |  |  |  |  |= (5-1)
-      |  |  |  |  |  |= 4
-      |  |  |  |  |= 3
-      |  |  |  |= 2
-      |  |  |  r-> ((λx.fac (x x)) (λx.fac (x x))) (((((5-1)-1)-1)-1))
-      |  |  |  |= ((λx.fac (x x)) (λx.fac (x x))) (((((5-1)-1)-1)-1))
-      |  |  |  |= (λx.fac (x x)) (λx.fac (x x)) (((((5-1)-1)-1)-1)) // left assoc λ aplications: (f x) y = f x y
-      |  |  |  |= (fac ((λx.fac (x x)) (λx.fac (x x)))) (((((5-1)-1)-1)-1)) // β-reduc
-      |  |  |  |= fac ((λx.fac (x x)) (λx.fac (x x))) (((((5-1)-1)-1)-1)) // left assoc λ aplications: (f x) y = f x y
-      |  |  |  |= (λf.λx.if ((x=0)) 1 ((x*f ((x-1))))) ((λx.fac (x x)) (λx.fac (x x))) (((((5-1)-1)-1)-1))
-      |  |  |  |= (λx.if ((x=0)) 1 ((x*((λx.fac (x x)) (λx.fac (x x))) ((x-1))))) (((((5-1)-1)-1)-1)) // β-reduc
-      |  |  |  |= if ((((((5-1)-1)-1)-1)=0)) 1 ((((((5-1)-1)-1)-1)*((λx.fac (x x)) (λx.fac (x x))) ((((((5-1)-1)-1)-1)-1)))) // β-reduc
-      |  |  |  | if|= (((((5-1)-1)-1)-1)=0)
-      |  |  |  | if|  l-> ((((5-1)-1)-1)-1)
-      |  |  |  | if|  |= ((((5-1)-1)-1)-1)
-      |  |  |  | if|  |  l-> (((5-1)-1)-1)
-      |  |  |  | if|  |  |= (((5-1)-1)-1)
-      |  |  |  | if|  |  |  l-> ((5-1)-1)
-      |  |  |  | if|  |  |  |= ((5-1)-1)
-      |  |  |  | if|  |  |  |  l-> (5-1)
-      |  |  |  | if|  |  |  |  |= (5-1)
-      |  |  |  | if|  |  |  |  |= 4
-      |  |  |  | if|  |  |  |= 3
-      |  |  |  | if|  |  |= 2
-      |  |  |  | if|  |= 1
-      |  |  |  | if|= false
-      |  |  |  |= (((((5-1)-1)-1)-1)*((λx.fac (x x)) (λx.fac (x x))) ((((((5-1)-1)-1)-1)-1)))
-      |  |  |  |  l-> ((((5-1)-1)-1)-1)
-      |  |  |  |  |= ((((5-1)-1)-1)-1)
-      |  |  |  |  |  l-> (((5-1)-1)-1)
-      |  |  |  |  |  |= (((5-1)-1)-1)
-      |  |  |  |  |  |  l-> ((5-1)-1)
-      |  |  |  |  |  |  |= ((5-1)-1)
-      |  |  |  |  |  |  |  l-> (5-1)
-      |  |  |  |  |  |  |  |= (5-1)
-      |  |  |  |  |  |  |  |= 4
-      |  |  |  |  |  |  |= 3
-      |  |  |  |  |  |= 2
-      |  |  |  |  |= 1
-      |  |  |  |  r-> ((λx.fac (x x)) (λx.fac (x x))) ((((((5-1)-1)-1)-1)-1))
-      |  |  |  |  |= ((λx.fac (x x)) (λx.fac (x x))) ((((((5-1)-1)-1)-1)-1))
-      |  |  |  |  |= (λx.fac (x x)) (λx.fac (x x)) ((((((5-1)-1)-1)-1)-1)) // left assoc λ aplications: (f x) y = f x y
-      |  |  |  |  |= (fac ((λx.fac (x x)) (λx.fac (x x)))) ((((((5-1)-1)-1)-1)-1)) // β-reduc
-      |  |  |  |  |= fac ((λx.fac (x x)) (λx.fac (x x))) ((((((5-1)-1)-1)-1)-1)) // left assoc λ aplications: (f x) y = f x y
-      |  |  |  |  |= (λf.λx.if ((x=0)) 1 ((x*f ((x-1))))) ((λx.fac (x x)) (λx.fac (x x))) ((((((5-1)-1)-1)-1)-1))
-      |  |  |  |  |= (λx.if ((x=0)) 1 ((x*((λx.fac (x x)) (λx.fac (x x))) ((x-1))))) ((((((5-1)-1)-1)-1)-1)) // β-reduc
-      |  |  |  |  |= if (((((((5-1)-1)-1)-1)-1)=0)) 1 (((((((5-1)-1)-1)-1)-1)*((λx.fac (x x)) (λx.fac (x x))) (((((((5-1)-1)-1)-1)-1)-1)))) // β-reduc
-      |  |  |  |  | if|= ((((((5-1)-1)-1)-1)-1)=0)
-      |  |  |  |  | if|  l-> (((((5-1)-1)-1)-1)-1)
-      |  |  |  |  | if|  |= (((((5-1)-1)-1)-1)-1)
-      |  |  |  |  | if|  |  l-> ((((5-1)-1)-1)-1)
-      |  |  |  |  | if|  |  |= ((((5-1)-1)-1)-1)
-      |  |  |  |  | if|  |  |  l-> (((5-1)-1)-1)
-      |  |  |  |  | if|  |  |  |= (((5-1)-1)-1)
-      |  |  |  |  | if|  |  |  |  l-> ((5-1)-1)
-      |  |  |  |  | if|  |  |  |  |= ((5-1)-1)
-      |  |  |  |  | if|  |  |  |  |  l-> (5-1)
-      |  |  |  |  | if|  |  |  |  |  |= (5-1)
-      |  |  |  |  | if|  |  |  |  |  |= 4
-      |  |  |  |  | if|  |  |  |  |= 3
-      |  |  |  |  | if|  |  |  |= 2
-      |  |  |  |  | if|  |  |= 1
-      |  |  |  |  | if|  |= 0
-      |  |  |  |  | if|= true
-      |  |  |  |  |= 1
-      |  |  |  |= 1
-      |  |  |= 2
-      |  |= 6
-      |= 24
-    = 120
+      |= (2-1)*((λx.fac (x x)) (λx.fac (x x))) (2-1-1)
+      |  l-> 2-1
+      |  |= 2-1
+      |  |= 1
+      |  r-> ((λx.fac (x x)) (λx.fac (x x))) (2-1-1)
+      |  |= ((λx.fac (x x)) (λx.fac (x x))) (2-1-1)
+      |  |= (λx.fac (x x)) (λx.fac (x x)) (2-1-1) // left assoc λ aplications: (f x) y = f x y
+      |  |= (fac ((λx.fac (x x)) (λx.fac (x x)))) (2-1-1) // β-reduc
+      |  |= fac ((λx.fac (x x)) (λx.fac (x x))) (2-1-1) // left assoc λ aplications: (f x) y = f x y
+      |  |= (λf.λx.if (x=0) 1 (x*f (x-1))) ((λx.fac (x x)) (λx.fac (x x))) (2-1-1)
+      |  |= (λx.if (x=0) 1 (x*((λx.fac (x x)) (λx.fac (x x))) (x-1))) (2-1-1) // β-reduc
+      |  |= if (2-1-1=0) 1 ((2-1-1)*((λx.fac (x x)) (λx.fac (x x))) (2-1-1-1)) // β-reduc
+      |  | if|= 2-1-1=0
+      |  | if|  l-> 2-1-1
+      |  | if|  |= 2-1-1
+      |  | if|  |  l-> 2-1
+      |  | if|  |  |= 2-1
+      |  | if|  |  |= 1
+      |  | if|  |= 0
+      |  | if|= true
+      |  |= 1
+      |= 1
+    = 2
     
-    = 120
+    = 2
+
+    $ testing_interpreter.py -nf examples/factorial.lambda
+    2
+
+    $ # see: https://en.wikipedia.org/wiki/99_Bottles_of_Beer
+    $ testing_interpreter.py -vnf examples/beer.lambda
+    
+    99 bottles of beer on the wall, 99 bottles of beer.
+    Take one down and pass it around, 98 bottles of beer on the wall.
+    
+    98 bottles of beer on the wall, 98 bottles of beer.
+    Take one down and pass it around, 97 bottles of beer on the wall.
+    
+    ...
+    
+    1 bottle of beer on the wall, 1 bottle of beer.
+    Take one down and pass it around, no more bottles of beer on the wall.
+    
+    No more bottles of beer on the wall, no more bottles of beer.
+    Go to the store and buy some more, 99 bottles of beer on the wall.
 
 TODO
 ----
 
-- improve printing (add `myPrint` variable to almost all the functions)
-- add options to the main file (in `testing_interpreter.py`)
-- add support to `fst` and `snd` primitive functions
-- add primitive `toString`
+- add lazy evaluation: *call by need*
+
+Issues
+------
+
+- Currently, this mini-interpreter can only be executed in linux. Because, PLY
+  had problems in windows.
 
 PS
 --

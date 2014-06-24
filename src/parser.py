@@ -11,10 +11,10 @@ precedence = (
     ('nonassoc', 'DOT'), # no matter if it's nonassoc, right or left
 
     # real operators
-    ('right', 'CONS'),
-    ('right', 'CONCAT'),
     ('left', 'AND', 'OR'),
     ('nonassoc', 'LESSTHAN', 'GREATERTHAN', 'EQUAL', 'DIFF_OP'),  # Nonassociative operators
+    ('right', 'CONS'),
+    ('right', 'CONCAT'),
     ('left', 'PLUS', 'MINUS'),
     ('left', 'TIMES', 'DIVIDE'),
 

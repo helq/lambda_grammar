@@ -15,10 +15,9 @@ from src.repr import λ_term_to_str
 tests = [
         "test = 5 .",
         "test = 5+c : nil .",
-        "test = (\\x.x) .",
-        'test = \\x.((\\x.x) x) .',
-        'test = (\\x.(\\x.x)) x .',
-        'test = (λx.λy.y+x) .',
+       r"test = (\x.x) .",
+       r'test = \x.((\x.x) x) .',
+       r'test = (\x.(\x.x)) x .',
         'test = (λx.λy.y+x) .',
         'test = (a b) c .',
         'test = a b c .',
@@ -30,9 +29,12 @@ tests = [
         'test = λf.(λx.x x) (λx.f (x x)) .',
         "test = \"hi\": ' another string' .",
         "test = (f) a b c .",
-        "test = (\\x.x) a b c .",
+       r"test = (\x.x) a b c .",
         "test = (f x) a b c .",
         "test = (f + x) a b c .",
+       r"test = (\x.2+3) +5 /= 6.",
+        "test = 9-1-1-1-1 .",
+        "test = (5=7) /=8 .",
 ]
 
 for s in tests:

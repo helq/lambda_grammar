@@ -33,5 +33,5 @@ if __name__ == "__main__":
         exit(1)
 
     print( λ_term_to_str(declarations['main']), end="\n\n" )
-    result = inter.reduce_λ_term(declarations['main'], declarations, nothing)
+    result = inter.reduce_λ_term(declarations['main'], declarations, print)
     print( "\n= " + λ_term_to_str(result) )

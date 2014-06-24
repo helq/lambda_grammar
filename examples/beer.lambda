@@ -1,0 +1,12 @@
+line1 = \n. show n^" bottles of beer on the wall, "^show n^" bottles of beer.\n" .
+line2 = \n. "Take one down and pass it around, "^show (n-1)^" bottles of beer on the wall.\n\n" .
+
+beer = \n. if (n=1) end (line1 n ^ line2 n ^ beer (n-1)) .
+
+end =
+    "1 bottle of beer on the wall, 1 bottle of beer.\n"
+   ^"Take one down and pass it around, no more bottles of beer on the wall.\n\n"
+   ^"No more bottles of beer on the wall, no more bottles of beer.\n"
+   ^"Go to the store and buy some more, 99 bottles of beer on the wall." .
+
+main = beer 99 .

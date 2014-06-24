@@ -5,11 +5,12 @@
 
 from src.repr import λ_term_to_str
 def printNothing(x): pass
+call_by_value_substitution = True
 
 
 primitives = ['if', 'fst', 'snd', 'show']
 
-def reduce_λ_term(λ_term, declarations, myPrint=print):
+def reduce_λ_term(λ_term, declarations, myPrint=printNothing):
     what_happend=None
 
     # reduce lambda term until return something, or an error of types kill the
@@ -133,7 +134,7 @@ def reduce_λ_term(λ_term, declarations, myPrint=print):
                 input_ = λ_term['input'][0]
 
                 # β reduction: (λx.M) N ≡ M[x := N]
-                new_λ_term = substitution(param, input_, myPrint) (term)
+                new_λ_term = substitution(param, input_, declarations, myPrint) (term)
                 what_happend = "// β-reduc"
 
                 # (λx.M) N O ... ≡ (M[x := N]) O ...
@@ -150,7 +151,12 @@ def reduce_λ_term(λ_term, declarations, myPrint=print):
 
 # subtitution, lambda calculus: M[x := N]
 # https://en.wikipedia.org/wiki/Lambda_calculus#Substitution
-def substitution(x, N, myPrint=printNothing):
+def substitution(x, N, decls, myPrint=printNothing):
+    if call_by_value_substitution:
+        myPrint(" red|  "+ λ_term_to_str(N))
+        N = reduce_λ_term(N, decls)
+        myPrint(" red|= "+ λ_term_to_str(N))
+
     def subs_x_for_N_in(M):
         if M["type"] == 'value': return M # `value` [x := N] ≡ `value`
         if M["type"] == 'op': # (M1 `op` M2) [x := N] ≡ (M1[x := N] `op` M2[x := N])
@@ -183,7 +189,7 @@ def substitution(x, N, myPrint=printNothing):
                     myPrint( "        |= " + λ_term_to_str(M) )
                     M = { 'type': 'λ_abstraction'
                         , 'param': newY
-                        , 'λ_term': substitution(y, newYid)(M['λ_term'])
+                        , 'λ_term': substitution(y, newYid, decls)(M['λ_term'])
                         }
                     myPrint( " α-reduc|= " + λ_term_to_str(M) )
                     # now: (λ newY.M)[x := N] ≡ λ newY.(M[x := N]), if x ≠ newY

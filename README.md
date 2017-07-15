@@ -106,7 +106,7 @@ Issues
 ------
 
 - Currently, this mini-interpreter can only be executed in linux. Because, PLY
-  had problems in windows.
+  has problems in windows.
 
 PS
 --
